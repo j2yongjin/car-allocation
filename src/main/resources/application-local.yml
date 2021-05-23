@@ -1,0 +1,32 @@
+spring:
+  h2:
+    console:
+      enabled: true
+
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driverClassName : org.h2.Driver
+    username : sa
+    password:
+
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create
+    properties:
+      hibernate:
+        format_sql : false
+    show-sql: false
+  output:
+    ansi:
+      enabled : always
+
+  redis:
+    port: 6379
+    host: localhost
+
+decorator:
+  datasource:
+    p6spy:
+      enable-logging: true
+      multiline: true

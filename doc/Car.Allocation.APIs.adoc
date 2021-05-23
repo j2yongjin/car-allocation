@@ -1,0 +1,721 @@
+= Car Allocation APIs
+v0.0.1, {localdate}
+:toc: left
+:toc-title: Car Allocation APIs
+:imagesdir: assets/images
+:homepage:
+:source-highlighter: pygments
+:pygments-style: monokai
+:sectnums:
+:sectnumlevels: 3
+:icons: font
+:internalOnly: no
+
+
+.Overview
+****
+본 규격서는 자동차 배차를 위한 연동 가이드를 제공합니다.
+
+1. 연동 절차
+* TBD : 연동 절차 작성
+
+
+2. APIs
+
+* 운행 예약
+* 기사 배차
+* 운행 시작
+* 운행 종료
+* 예약 취소
+* 예약 현황
+****
+
+'''
+
+== 주요 연동 시나리오
+.탑승 예약 시스템 - 주요 연동 시나리오
+
+****
+주요 연동 시나리오를 포함한다.
+****
+
+
+== Car Allocation APIs
+=== 운행 예약
+
+.Use Cases
+****
+
+----
+1. App/Front 로 부터 운행예약 요청을 받고 응답합니다.
+    * 운행예약 요청 및 응답
+
+----
+
+****
+
+==== 요청
+
+[source,bash,options="nowrap"]
+----
+$ curl 'http://localhost:8080/car-allocation/v1/reservation/reserve' -i -X POST \
+    -H 'Accept: application/json;charset=UTF-8' \
+    -H 'Content-Type: application/json' \
+    -d '{
+            "requestDatetime":"2021-05-22T15:54:02",
+            "requestId":"20210522155402001",
+            "member" : {
+              "name":"yjlee",
+              "telephone":"01011112222"
+            },
+            "time" : {
+              "startDate":"2019-12-30",
+              "startTime":"15:54:02",
+              "estimatedTime":130
+            },
+            "location":{
+                "departure" : "cu 방배점",
+                "destination" : "서울시청"
+            }
+
+    }'
+----
+
+
+[cols="3,1,4"]
+.요청 파라미터
+|===
+|Parameter|Type|Description
+
+|requestDatetime
+|String
+a|예약 요청 시간
+
+* ISO8601: yyyy-mm-dd’T’hh:mm:ss
+
+|requestId
+|String
+a|예약 요청 번호 (Uniqueness)
+
+* 요청시 예약 요청 번호를 전달합니다.
+
+|member
+|Object
+|회원정보
+
+|member.name
+|String
+|회원명
+
+|member.telephone
+|String
+a|회원 휴대폰 번호
+
+|time
+|Object
+|예약 요청 시간
+
+|time.startDate
+|String
+a|시작날짜
+
+* yyyy-mm-dd
+
+|time.startTime
+|String
+a|시작시간
+
+* hh:mm:ss
+
+|time.estimatedTime
+|Number
+|예상시간 (분)
+
+|location
+|Object
+|요청 장소
+
+|location.departure
+|String
+a| 출발지
+
+|location.destination
+|String
+a| 도착지
+
+|===
+
+==== 응답
+유효한 요청일 경우 아래 메시지를 전달하며, 오류일 경우 [정의된 오류]를 전달합니다.
+
+
+[cols="3,1,4"]
+.응답 파라미터
+|===
+|Parameter|Type|Description
+
+|requestId (echo)
+|String
+a| 예약 요청 번호
+
+|reservation
+|Object
+a|예약
+
+|reservation.identifier
+|String
+|예약 번호
+
+|===
+
+=== 기사 배차
+
+.Use Cases
+****
+
+----
+1. App/Front 로 부터 기사 정보를 받아 운행예약에 기사를 배정합니다.
+    * 기사 배차 요청 및 응답
+----
+
+****
+
+==== 요청
+
+[source,bash,options="nowrap"]
+----
+$ curl 'http://localhost:8080/car-allocation/v1/driver/allocate' -i -X POST \
+    -H 'Accept: application/json;charset=UTF-8' \
+    -H 'Content-Type: application/json' \
+    -d '{
+            "requestDatetime":"2021-05-22T15:54:02",
+            "requestId":"20210522155402001",
+            "reservation" : {
+              "identifier":"STNDUCSFTTEOAQAY999999999998"
+            },
+            "driver" : {
+              "name":"yjlee",
+              "telephone":"01011112222"
+            },
+            "car":{
+                "identifier" : "11가1234"
+            }
+    }'
+----
+
+
+[cols="3,1,4"]
+.요청 파라미터
+|===
+|Parameter|Type|Description
+
+|requestDatetime
+|String
+a|배차 요청 시간
+
+* ISO8601: yyyy-mm-dd’T’hh:mm:ss
+
+|requestId
+|String
+a|배차 요청 번호 (Uniqueness)
+
+* 요청시 배차 요청 번호를 전달합니다.
+
+|reservation
+|Object
+|예약
+
+|reservation.identifier
+|String
+|예약번호
+
+|driver
+|Object
+a|기사
+
+|driver.name
+|String
+|기사 성명
+
+|driver.telephone
+|String
+a|기사 휴대폰 번호
+
+|car
+|Object
+a|자동차
+
+|car.identifier
+|String
+|자동차 식별번호(자동차 번호판)
+
+
+|===
+
+==== 응답
+유효한 요청일 경우 204 No Content 응답을 전달하며, 오류일 경우 [정의된 오류]를 전달합니다.
+
+
+[source,http,options="nowrap"]
+----
+HTTP/1.1 204 No Content
+----
+
+=== 운행 시작
+
+.Use Cases
+****
+
+----
+1. 운행 시작 요청을 받고 응답한다.
+    * 운행 시작 요청 및 응답
+----
+
+****
+
+==== 요청
+
+[source,bash,options="nowrap"]
+----
+$ curl 'http://localhost:8080/car-allocation/v1/driver/start' -i -X POST \
+    -H 'Accept: application/json;charset=UTF-8' \
+    -H 'Content-Type: application/json' \
+    -d '{
+            "reservation" : {
+              "identifier":"STNDUCSFTTEOAQAY999999999998"
+            },
+            "startDatetime":"2021-05-22T15:54:02"
+    }'
+----
+
+
+[cols="3,1,4"]
+.요청 파라미터
+|===
+|Parameter|Type|Description
+
+
+|reservation
+|Object
+|예약
+
+|reservation.identifier
+|String
+|예약번호
+
+|startDatetime
+|String
+a|운행시작시간
+
+* ISO8601: yyyy-mm-dd’T’hh:mm:ss
+
+
+
+|===
+
+==== 응답
+유효한 요청일 경우 204 No Content 응답을 전달하며, 오류일 경우 [정의된 오류]를 전달합니다.
+
+
+[source,http,options="nowrap"]
+----
+HTTP/1.1 204 No Content
+----
+
+=== 운행 종료
+
+.Use Cases
+****
+
+----
+1. 운행 종료 요청 및 응답
+----
+
+****
+
+==== 요청
+
+[source,bash,options="nowrap"]
+----
+$ curl 'http://localhost:8080/car-allocation/v1/driver/stop' -i -X PUT \
+    -H 'Accept: application/json;charset=UTF-8' \
+    -H 'Content-Type: application/json' \
+    -d '{
+            "reservation" : {
+              "identifier":"STNDUCSFTTEOAQAY999999999998"
+            },
+            "endDatetime":"2021-05-22T15:54:02"
+    }'
+----
+
+
+[cols="3,1,4"]
+.요청 파라미터
+|===
+|Parameter|Type|Description
+
+|reservation
+|Object
+|예약
+
+|reservation.identifier
+|String
+|예약번호
+
+|endDatetime
+|String
+a|운행시작시간
+
+* ISO8601: yyyy-mm-dd’T’hh:mm:ss
+
+
+|===
+
+==== 응답
+유효한 요청일 경우 204 No Content 응답을 전달하며, 오류일 경우 [정의된 오류]를 전달합니다.
+
+
+[source,http,options="nowrap"]
+----
+HTTP/1.1 204 No Content
+----
+
+=== 예약 취소
+
+.Use Cases
+****
+
+----
+1. 예약 취소
+----
+
+****
+
+==== 요청
+
+[source,bash,options="nowrap"]
+----
+$ curl 'http://localhost:8080/car-allocation/v1/reservation/withdraw' -i -X PUT \
+    -H 'Accept: application/json;charset=UTF-8' \
+    -H 'Content-Type: application/json' \
+    -d '{
+
+            "reservation" : {
+              "identifier":"STNDYARXDEJOLTER999999999998"
+            },
+            "member" : {
+              "name":"yjlee",
+              "telephone":"01011112222"
+            }
+    }'
+----
+
+
+[cols="3,1,4"]
+.요청 파라미터
+|===
+|Parameter|Type|Description
+
+
+|reservation
+|Object
+|예약
+
+|reservation.identifier
+|String
+|예약번호
+
+|member
+|Object
+a|고객
+
+|member.name
+|String
+|고객 성명
+
+|member.telephone
+|String
+a|고객 휴대폰 번호
+
+
+|===
+
+==== 응답
+유효한 요청일 경우 204 No Content 응답을 전달하며, 오류일 경우 [정의된 오류]를 전달합니다.
+
+
+[source,http,options="nowrap"]
+----
+HTTP/1.1 204 No Content
+----
+
+=== 예약 현황
+
+.Use Cases
+****
+
+----
+1. 예약 현황을 조회 합니다.
+----
+
+****
+
+==== 요청
+
+[source,bash,options="nowrap"]
+----
+$ curl 'http://localhost:8080/car-allocation/v1/lookup/reservations' -i -X GET \
+    -H 'Accept: application/json;charset=UTF-8' \
+    -H 'Content-Type: application/json' \
+----
+
+
+
+==== 응답
+유효한 요청일 경우 응답을 전달하며, 오류일 경우 [정의된 오류]를 전달합니다.
+
+
+[source,http,options="nowrap"]
+[cols="3,1,4"]
+.응답 파라미터
+|===
+|Parameter|Type|Description
+
+|reservations[]
+|Array
+a| 예약 리스트
+
+|reservations[].identifier
+|String
+a|예약번호
+
+|reservations[].status
+|String
+a |예약상태
+
+* `READY` : 예약 상태 이며 , 차량 배차전 상태입니다.
+
+* `ALLOCATED` : 차량 배차된 상태입니다.
+
+* `DRIVING` : 배차후 운행중 상태입니다.
+
+* `COMPLETED` : 운행 완료 상태입니다.
+
+* `WITHDRAW` : 예약 취소 상태입니다.
+
+|reservations[].reservedTime
+|Object
+a|예약시간
+
+|reservations[].reservedTime.startDate
+|String
+a|출발일
+
+|reservations[].reservedTime.startTime
+|String
+a|출발일
+
+|reservations[].reservedTime.estimatedTime
+|Number
+a|예상시간(분)
+
+|reservations[].location
+|Object
+a|위치
+
+|reservations[].location.departure
+|String
+a|출발지
+
+|reservations[].location.destination
+|String
+a|목적지
+
+|reservations[].member
+|Object
+a|고객
+
+|reservations[].member.name
+|String
+a|고객명
+
+|reservations[].member.telephone
+|String
+a|고객 휴대폰 번호
+
+|reservations[].driver
+|Object
+a|기사
+
+|reservations[].driver.name
+|String
+a|기사 성명
+
+|reservations[].driver.telephone
+|String
+a|기사 휴대폰번호
+
+|reservations[].driver.startDttm
+|String
+a|운행 시작일
+
+|reservations[].driver.endDttm
+|String
+a|운행 종료일
+
+|reservations[].car
+|Object
+a|자동차
+
+|reservations[].car.identifier
+|Object
+a|자동차 식별값(번호판)
+
+
+
+
+|===
+
+
+
+== Revisions
+
+[cols="1,3", options="header", stripes=even]
+.Document Revision History
+|===
+|Version|Description
+
+a|`v 0.0.1`
+a|
+* 최초 릴리즈
+|===
+
+
+== 공통 오류 응답
+[cols="2,1,6", options="header"]
+.REST API Error Object Description
+|===
+|Path|Type|Description
+
+|`+error+`
+|`+Object+`
+|Common Error Object (공통 오류 메시지)
+
+|`+error.timestamp+`
+|`+String+`
+|오류 발생 일시 (UTC)
+
+|`+error.status+`
+|`+Number+`
+|오류에 대한 상태 값을 지칭하며, 일반적으로 HTTP Status Code와 동일합니다.
+
+
+|`+error.error+`
+|`+String+`
+a|HTTP Status에 대한 오류 코드(Short Description)입니다.
+
+* 예: BAD_REQUEST, UNAUTHORIZED
+
+|`+error.code+`
+|`+String+`
+a|[Optional] 내부 정의한 추가적인 오류 코드입니다.
+
+* 예: INVALID_PARAMETER,
+
+|`+error.message+`
+|`+String+`
+|[Optional] 내부 정의한 오류 메세지이며 일반적으로 개발자를 위한 메시지입니다.
+
+|`+error.path+`
+|`+String+`
+|[Optional] 에러가 발생한 URL 정보입니다.
+
+|===
+
+
+[cols="3,7", options="header"]
+.내부 정의 에러코드
+|===
+|error.code|error.message
+
+|`+INVALID_PARAMETER+`
+|요청 값 또는 요청인자 형식 오류입니다.
+
+|`+ALREADY_RESERVATION+`
+|이미 예약된 차량이 있습니다.
+
+|`+NOTFOUND_RESERVATION+`
+|예약번호가 존재 하지 않습니다.
+
+|`+ALREADY_ALLOCATE_DRIVER+`
+|기사님을 배정할수 없습니다.
+
+|`+INVALID_RESERVATION+`
+|예약 상태 오류입니다.
+
+|`+NOTFOUND_ALLOCATE_DRIVER+`
+|배차된 차량이 없습니다.
+
+|`+NOTFOUND_ALLOCATE_DRIVER+`
+|배차된 차량이 없습니다.
+
+|`+INVALID_DRIVE_STOP+`
+|운행 중단 가능한 상태가 아닙니다.
+
+|`+NOT_PERMIT_WITHDRAW+`
+|예약 취소를 허용하지 않습니다.
+
+|`+SYSTEM_ERROR+`
+|시스템 오류
+
+
+|===
+
+== 서버 접속 정보
+[cols="1,1,4,4", options="header"]
+
+|===
+|환경이름|구분|접속도메인(IP):Port|설명
+
+
+|로컬 환경
+|로컬
+a|
+* http://localhost:8080 +
+
+|로컬 테스트 환경 입니다.
+|===
+
+
+
+
+ifeval::['{internalOnly}' == 'yes']
+== Miscellaneous
+
+=== Asciidoctor
+
+==== Installing Asciidoctor on macOS
+This document describes, in detail, how to install Asciidoctor on macOS. Several approaches are offered. Select the procedure that works best for you.
+
+https://asciidoctor.org/docs/install-asciidoctor-macos/
+
+==== Shell Command
+
+[source,bash]
+----
+$ asciidoctor -r asciidoctor-diagram Car.Allocation.APIs.adoc -a setanchors=true -a idseparator=- -a doctype=book -a docinfo1=true -a toclevels=3 -a sectanchors -a sectlinks -o Car.Allocation.APIs.adoc.v.0.0.1.html
+----
+
+==== Install Source Highlighter (OSX)
+[source,bash]
+----    ``
+$ sudo gem install pygments.rb
+----
+
+==== Install Asciidoctor Diagram (OSX)
+[source,bash]
+----    ``
+$ sudo gem install asciidoctor-diagram
+----
+
+endif::[]

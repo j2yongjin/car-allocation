@@ -1,0 +1,79 @@
+plugins {
+    id 'org.springframework.boot' version '2.4.4'
+    id "com.ewerk.gradle.plugins.querydsl" version "1.0.10"
+    id "io.franzbecker.gradle-lombok" version "3.0.0"
+    id "io.spring.dependency-management" version '1.0.11.RELEASE'
+    id 'java'
+}
+
+apply plugin: 'io.spring.dependency-management'
+
+
+group 'com.allocation'
+version '0.0.1'
+sourceCompatibility = '1.8'
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+def querydslSrcDir = 'src/main/generated'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'junit:junit:4.12'
+    compile('org.springframework.boot:spring-boot-starter-web')
+
+    compile('org.springframework.boot:spring-boot-starter-data-jpa')
+    compile('org.springframework.boot:spring-boot-starter-jdbc')
+    compile("com.querydsl:querydsl-jpa")
+//    compile("com.querydsl:querydsl-apt")
+
+    compile('com.h2database:h2')
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+    compile 'org.springframework.boot:spring-boot-starter-data-redis'
+    compile (group: 'it.ozimov', name: 'embedded-redis', version: '0.7.3'){
+        exclude group :'org.slf4j'
+    }
+    implementation 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.5.8'
+
+    compile 'org.projectlombok:lombok'
+//    annotationProcessor 'org.projectlombok:lombok'
+
+
+}
+
+//compileQuerydsl {
+//    options.annotationProcessorPath = configurations.querydsl
+//}
+def querydslDir = "$buildDir/generated/querydsl"
+querydsl {
+//    library = "com.querydsl:querydsl-apt"
+    jpa = true
+    querydslSourcesDir = querydslDir
+}
+sourceSets {
+    main.java.srcDir querydslDir
+}
+
+configurations {
+    querydsl.extendsFrom complileClasspath
+}
+compileQuerydsl {
+    options.annotationProcessorPath = configurations.querydsl
+}
+
+//sourceSets {
+//    main {
+//        java {
+//            srcDirs = ['src/main/java', querydslSrcDir]
+//        }
+//    }
+//}

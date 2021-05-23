@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration debug="false" scan="true" scanPeriod="10 seconds">
+
+    <property name="appLogPath" value="/log/app/reserve"/>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
+
+    <appender name="defaultAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>
+            ${appLogPath}/reserve.log
+        </file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${appLogPath}/reserve.%d{yyyy-MM-dd}.log</fileNamePattern>
+        </rollingPolicy>
+
+        <encoder>
+            <charset>UTF-8</charset>
+            <pattern>[%d{yyyy-MM-dd HH:mm:ss.SS} :%-5level%X{uid}%logger{36} %msg%n</pattern>
+        </encoder>
+
+    </appender>
+
+    <springProfile name="local">
+        <root level="info">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
+
+    <springProfile name="dev,stg">
+        <root level="info">
+            <appender-ref ref="defaultAppender"/>
+        </root>
+    </springProfile>
+
+    <springProfile name="alp,prod">
+        <root level="info">
+            <appender-ref ref="defaultAppender" />
+        </root>
+    </springProfile>
+
+</configuration>
+
